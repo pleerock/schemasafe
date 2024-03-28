@@ -4,6 +4,7 @@ const genfun = require('./generate-function')
 const { buildSchemas } = require('./pointer')
 const { compile } = require('./compile')
 const { deepEqual } = require('./scope-functions')
+const { name, version } = require('../package.json')
 
 const jsonCheckWithErrors = (validate) =>
   function validateIsJSON(data) {
@@ -33,6 +34,7 @@ const validator = (
   const { scope, refs } = compile(arg, options) // only a single ref
   if (opts.dryRun) return
   if (opts.lint) return scope.lintErrors
+  const meta = { builder: { name, version }, variant: parse ? 'parser' : 'validator', mode }
   const fun = genfun()
   if (parse) {
     scope.parseWrap = opts.includeErrors ? parseWithErrors : parseWithoutErrors
@@ -55,6 +57,7 @@ const validator = (
   const validate = fun.makeFunction(scope)
   validate.toModule = ({ semi = true } = {}) => fun.makeModule(scope) + (semi ? ';' : '')
   validate.toJSON = () => schema
+  validate.toMeta = () => meta
   return validate
 }
 
